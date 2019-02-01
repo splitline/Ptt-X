@@ -1,0 +1,17 @@
+{
+  "name": "Ptt X",
+  "version": "1.0.0",
+  "manifest_version": 2,
+  "description": "",
+  "content_scripts": [{
+    "matches": ["https://www.ptt.cc/bbs/*"],
+    "css": [],
+    "js": [
+      "js/utils.js",
+      "js/b2u_table.js",
+      "js/main.js"
+    ],
+    "all_frames": true,
+    "run_at": "document_idle"
+  }]
+}
