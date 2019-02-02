@@ -1,4 +1,4 @@
-utils.b2uTable = {
+const b2uTable = {
     x8140: '\u4E17',
     x8141: '\u4E22',
     x8142: '\u4E2C',
@@ -19782,3 +19782,5 @@ utils.b2uTable = {
     xFEFD: '\u826A',
     xFEFE: '\u8288'
 };
+
+export default b2uTable;

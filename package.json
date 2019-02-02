@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "babel-polyfill": "^6.26.0",
+    "ptt-client": "^0.4.0",
+    "sleep-promise": "^8.0.1",
+    "terminal.js": "github:Gottox/terminal.js"
+  }
+}

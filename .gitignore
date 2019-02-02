@@ -8,7 +8,7 @@ node_modules/
 .cache
 
 # distribution files
-dist/
+dist/*.map
 
 # package-lock.json file
 package-lock.json
