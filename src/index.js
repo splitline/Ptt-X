@@ -4,7 +4,8 @@ import Ptt from "./Ptt";
 const account = {
 	username: "guest",
 	password: "guest",
-	logout_dup: false
+	logout_dup: false,
+	delete_try_log: true
 };
 
 (async () => {
