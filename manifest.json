@@ -5,11 +5,11 @@
   "description": "",
   "content_scripts": [{
     "matches": ["https://www.ptt.cc/bbs/*"],
-    "css": [],
-    "js": [
-      "dist/index.js"
-    ],
+    "js": ["dist/inject.js"],
     "all_frames": true,
     "run_at": "document_idle"
-  }]
+  }],
+  "web_accessible_resources": [
+    "dist/index.js"
+  ]
 }

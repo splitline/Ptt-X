@@ -17,7 +17,7 @@ class PttSocket extends EventEmitter {
       buffer.push(...new Uint8Array(data));
       timeoutHandler = setTimeout(() => {
         this.emit('message', String.fromCharCode(...buffer).b2u());
-      }, 200);
+      }, 50);
     });
 
     this.socket.addEventListener('open', (e) => {
@@ -27,6 +27,10 @@ class PttSocket extends EventEmitter {
 
     this.socket.addEventListener('close', (e) => {
       alert("斷線了 888888");
+    });
+
+    this.socket.addEventListener('error', (e) => {
+      console.log(e);
     });
   }
 

@@ -11,15 +11,17 @@ import {
 export default class Ptt extends EventEmitter {
 	constructor() {
 		super();
+		this.state = {
+			connect: false,
+			login: false
+		};
 		this.socket = new PttSocket("wss://ws.ptt.cc/bbs/");
 		this.term = new Terminal({
 			columns: 80,
 			rows: 24,
 		});
 		this.term.state.setMode('stringWidth', 'dbcs');
-		this.term.getLine = (i) => {
-			return this.term.state.getLine(i).str;
-		}
+		this.term.getLine = i => this.term.state.getLine(i).str;
 		this.socket
 			.on("connect", () => this.emit("connect"))
 			.on("message", (data) => {
@@ -29,9 +31,11 @@ export default class Ptt extends EventEmitter {
 	}
 
 	async connect() {
-		this
 		return new Promise(resolve => {
-			this.on('connect', resolve);
+			this.on('connect', () => {
+				this.state.connect = true;
+				resolve();
+			});
 		});
 	}
 
@@ -43,8 +47,9 @@ export default class Ptt extends EventEmitter {
 			this.socket.on("message", (_ = async (data) => {
 				ret = await this.isLogin(data, account);
 				if (typeof ret === "boolean") {
-					resolve(ret);
+					this.state.login = ret;
 					this.socket.removeListener("message", _);
+					resolve(ret);
 				}
 			}));
 		});
@@ -73,12 +78,12 @@ export default class Ptt extends EventEmitter {
 	}
 
 	async getFavorite() {
-		await this.socket.send(KEYS.CtrlZ + "f");
+		await this.socket.send(KEYS.CtrlZ + "f" + KEYS.Home);
 		const favorites = [];
 		let firstId = -1,
 			endOfList = false;
 		while (true) {
-			await sleep(200);
+			await sleep(50);
 			for (let i = 3; i < 23; i++) {
 				let line = this.term.getLine(i);
 				if (line.trim() === '') break;
@@ -88,7 +93,7 @@ export default class Ptt extends EventEmitter {
 					boardname: line.substrWidth(10, 12).trim(),
 					category: line.substrWidth(23, 4).trim(),
 					title: line.substrWidth(30, 31),
-					popularity: line.substrWidth(62, 5).trim(),
+					nuser: line.substrWidth(62, 5).trim(),
 					admin: line.substrWidth(67).trim(),
 					folder: false,
 					divider: false,

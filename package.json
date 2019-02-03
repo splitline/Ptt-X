@@ -1,8 +1,14 @@
 {
   "dependencies": {
     "babel-polyfill": "^6.26.0",
+    "jsx-render": "^1.1.1",
     "ptt-client": "^0.4.0",
     "sleep-promise": "^8.0.1",
     "terminal.js": "github:Gottox/terminal.js"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.2.2",
+    "@babel/plugin-syntax-jsx": "^7.2.0",
+    "@babel/plugin-transform-react-jsx": "^7.3.0"
   }
 }
