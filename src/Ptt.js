@@ -48,6 +48,7 @@ export default class Ptt extends EventEmitter {
 				ret = await this.isLogin(data, account);
 				if (typeof ret === "boolean") {
 					this.state.login = ret;
+					this.emit("login", ret);
 					this.socket.removeListener("message", _);
 					resolve(ret);
 				}
@@ -78,6 +79,12 @@ export default class Ptt extends EventEmitter {
 	}
 
 	async getFavorite() {
+		const typeMap = {
+			"◎": "board",
+			"Σ": "group",
+			"□": "folder",
+			"--" : "divider"
+		};
 		await this.socket.send(KEYS.CtrlZ + "f" + KEYS.Home);
 		const favorites = [];
 		let firstId = -1,
@@ -91,12 +98,12 @@ export default class Ptt extends EventEmitter {
 					id: line.substrWidth(3, 4).trim() | 0,
 					read: line.substrWidth(8, 2).trim() === '',
 					boardname: line.substrWidth(10, 12).trim(),
-					category: line.substrWidth(23, 4).trim(),
-					title: line.substrWidth(30, 31),
-					nuser: line.substrWidth(62, 5).trim(),
+					class: line.substrWidth(23, 4).trim(),
+					type: typeMap[line.substrWidth(28, 2).trim()],
+					sign: line.substrWidth(28, 2).trim(),
+					title: line.substrWidth(28, 31),
+					nuser: parseInt(line.substrWidth(62, 5).trim()) || line.substrWidth(62, 5).trim(),
 					admin: line.substrWidth(67).trim(),
-					folder: false,
-					divider: false,
 				};
 				if (i === 3) {
 					if (firstId === favorite.id) {
