@@ -4,10 +4,12 @@
     "jsx-render": "^1.1.1",
     "ptt-client": "^0.4.0",
     "sleep-promise": "^8.0.1",
-    "terminal.js": "github:Gottox/terminal.js"
+    "terminal.js": "github:Gottox/terminal.js",
+    "toastr": "^2.1.4"
   },
   "devDependencies": {
     "@babel/core": "^7.2.2",
+    "@babel/plugin-proposal-class-properties": "^7.3.0",
     "@babel/plugin-syntax-jsx": "^7.2.0",
     "@babel/plugin-transform-react-jsx": "^7.3.0"
   }

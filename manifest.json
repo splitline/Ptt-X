@@ -5,11 +5,14 @@
   "description": "",
   "content_scripts": [{
     "matches": ["https://www.ptt.cc/bbs/*"],
-    "js": ["dist/inject.js"],
+    "js": [
+      "dist/index.js"
+    ],
+    "css": [
+      "node_modules/toastr/build/toastr.min.css",
+      "dist/loading.css"
+    ],
     "all_frames": true,
     "run_at": "document_idle"
-  }],
-  "web_accessible_resources": [
-    "dist/index.js"
-  ]
+  }]
 }
