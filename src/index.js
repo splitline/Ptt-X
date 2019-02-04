@@ -2,34 +2,31 @@ import "babel-polyfill";
 import Ptt from "./Ptt";
 import dom, { Fragment } from 'jsx-render';
 import * as toastr from 'toastr';
-
-const account = {
-	username: "guest",
-	password: "guest",
-	logout_dup: false,
-	delete_try_log: true
-};
+import alertify from 'alertifyjs';
 
 const ptt = new Ptt();
+global.account = {};
+
+const userStatus = (<a class="right small" href="#!">連線中...</a>);
+userStatus.setStatus = (message) => userStatus.textContent = message;
+topbar.appendChild(userStatus);
+
 ptt.on("login", success => {
 	if (success) {
 		toastr.success("登入成功");
-		userStatus.innerText = `我是 ${account.username}`;
+		userStatus.setStatus(`我是 ${account.username}`);
 	} else {
 		toastr.error("登入失敗 QQ");
-		userStatus.innerText = "登入失敗 QQ";
+		userStatus.setStatus("登入失敗 QQ");
 	}
 });
-ptt.on("connect", () => userStatus.innerText = "連線成功，登入中...");
+ptt.on("connect", () => userStatus.setStatus("連線成功，登入中..."));
 ptt.on("disconnect", () => toastr.error("斷線了 88888"));
-
-const userStatus = (<a class="right small" href="#!">連線中...</a>);
-topbar.appendChild(userStatus);
 
 const favoriteBtn = (<a class="btn" href="#">最愛看版</a>);
 favoriteBtn.onclick = async () => {
 	if (!ptt.state.login) {
-		toastr.warning("還在登入欸")
+		toastr.warning("還沒登入欸")
 		return;
 	}
 	const boardList = document.querySelector(".b-list-container");
@@ -74,7 +71,12 @@ favoriteBtn.onclick = async () => {
 };
 document.querySelector('.btn-group-cls').appendChild(favoriteBtn);
 
-// drag drop board
+/**
+|--------------------------------------------------
+| Drag Drop Functions
+|--------------------------------------------------
+*/
+
 var dragSrcEl = null;
 function handleDragStart(e) {
 	this.style.opacity = 0.4;
@@ -124,8 +126,42 @@ function DragDroper(elem) {
 	return elem;
 }
 
-(async function () {
-	// start ptt
-	await ptt.connect();
+// ============================================================
+
+const initPtt = async (account) => {
+	global.account = account;
+	!ptt.state.connect && await ptt.connect();
 	!ptt.state.login && await ptt.login(account);
-})();
+}
+
+chrome.storage.sync.get({ account: null }, async (data) => {
+	if (!data.account) {
+		alertify.confirm(
+			"設定 Ptt 帳號",
+			<div>
+				<label htmlFor="ptt-id"> ID </label>
+				<input class="ajs-input" type="text" id="ptt-username" />
+				<br />
+				<label htmlFor="ptt-password"> 密碼 </label>
+				<input class="ajs-input" type="password" id="ptt-password" />
+
+				<input type="checkbox" id="ptt-logout-dup" checked />
+				<label for="ptt-logout-dup">刪除其他重複登入的連線</label>
+
+				<input type="checkbox" id="ptt-delete-try-log" checked />
+				<label for="ptt-delete-try-log">刪除登入錯誤嘗試的記錄</label>
+			</div>
+			, () => {
+				account = {
+					username: document.getElementById("ptt-username").value,
+					password: document.getElementById("ptt-password").value,
+					logout_dup: document.getElementById('ptt-logout-dup').checked,
+					delete_try_log: document.getElementById('ptt-delete-try-log').checked
+				};
+				chrome.storage.sync.set({ account: account });
+				initPtt(account);
+			}, () => null);
+	}
+	else
+		initPtt(data.account);
+});

@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "manifest_version": 2,
   "description": "",
+  "permissions": [ "storage" ],
   "content_scripts": [{
     "matches": ["https://www.ptt.cc/bbs/*"],
     "js": [
@@ -10,6 +11,8 @@
     ],
     "css": [
       "node_modules/toastr/build/toastr.min.css",
+      "node_modules/alertifyjs/build/css/alertify.min.css",
+      "node_modules/alertifyjs/build/css/themes/default.min.css",
       "dist/loading.css"
     ],
     "all_frames": true,

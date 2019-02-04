@@ -1,6 +1,6 @@
 import PttSocket from './PttSocket';
 import {
-	KEYS
+	KeyMap
 } from './utils';
 import Terminal from 'terminal.js';
 import sleep from 'sleep-promise';
@@ -37,17 +37,17 @@ export default class Ptt extends EventEmitter {
 		this.term.state.setMode('stringWidth', 'dbcs');
 		this.term.getLine = i => this.term.state.getLine(i).str;
 		this.on("message", (data) => {
-			this.term.write(data);
-			console.log(this.term.toString());
-		});
+				this.term.write(data);
+				console.log(this.term.toString());
+			})
+			.on("connect", () => this.state.connect = true);
 
 		Ptt.SocketEvents.forEach(e => this.socket.on(e, this.emit.bind(this, e)));
 	}
 
 	async connect() {
-		return new Promise(resolve => {
+		return this.state.connect || new Promise(resolve => {
 			this.on('connect', () => {
-				this.state.connect = true;
 				resolve();
 			});
 		});
@@ -94,7 +94,7 @@ export default class Ptt extends EventEmitter {
 	}
 
 	async getFavorite() {
-		await this.send(KEYS.CtrlZ + "f" + KEYS.Home);
+		await this.send(KeyMap.CtrlZ + "f" + KeyMap.Home);
 		const favorites = [];
 		let firstId = -1,
 			endOfList = false;
@@ -124,20 +124,20 @@ export default class Ptt extends EventEmitter {
 				favorites.push(favorite);
 			}
 			if (endOfList) break;
-			await this.send(KEYS.PgDown);
+			await this.send(KeyMap.PageDown);
 		}
 		return favorites;
 	}
 
 	changeFavoriteOrder(originId, newId) {
-		this.send(KEYS.CtrlZ + "f");
+		this.send(KeyMap.CtrlZ + "f");
 		this.sendline(originId);
 		this.send("M");
 		this.sendline(newId);
 	}
 
 	FavoriteAppendDivider(lineId) {
-		this.send(KEYS.CtrlZ + "f");
+		this.send(KeyMap.CtrlZ + "f");
 		this.sendline(lineId);
 		this.send("L");
 	}

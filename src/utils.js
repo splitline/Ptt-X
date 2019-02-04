@@ -62,17 +62,29 @@ String.prototype.hexEncode = function () {
   return result
 }
 
-export const KEYS = {
+export const KeyMap = {
+  Backspace: '\b',
+  Tab: '\t',
   Enter: '\r',
-  ArrowLeft: '\x1b[D',
-  ArrowRight: '\x1b[C',
+  Escape: '\x1b',
+  Home: '\x1b[1~',
+  Insert: '\x1b[2~',
+  Delete: '\x1b[3~',
+  End: '\x1b[4~',
+  PageUp: '\x1b[5~',
+  PageDown: '\x1b[6~',
   ArrowUp: '\x1b[A',
   ArrowDown: '\x1b[B',
-  PgUp: '\x1b[5~',
-  PgDown: '\x1b[6~',
-  Home: '\x1b[1~',
-  End: '\x1b[4~',
-  Backspace: '\b',
+  ArrowRight: '\x1b[C',
+  ArrowLeft: '\x1b[D',
+  
+  // Edge.
+  Up: '\x1b[A',
+  Down: '\x1b[B',
+  Right: '\x1b[C',
+  Left: '\x1b[D',
+
+  // Special
   CtrlP: '\x10',
   CtrlU: '\x15',
   CtrlZ: '\x1a',
