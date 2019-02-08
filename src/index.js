@@ -12,9 +12,7 @@ const ptt = new Ptt();
 global.account = {};
 
 const appendReactDom = (elem, component) => {
-	const _div = document.createElement("div");
-	render(component(component, elem), _div);
-	elem.appendChild(findDOMNode(_div));
+	render(createPortal(component, elem), document.createElement("div"));
 };
 
 /**
@@ -119,7 +117,6 @@ class FavoriteBoards extends Component {
 	}
 
 	appendDivider({ props }) {
-		console.log(props);
 		ptt.favoriteAppendDivider(props.id);
 		const { boards } = this.state;
 		boards.splice(props.id - 1, 0, {
@@ -132,7 +129,6 @@ class FavoriteBoards extends Component {
 
 	appendFolder({ props }) {
 		ptt.favoriteAppendFolder(props.id);
-		console.log(props);
 		const { boards } = this.state;
 		boards.splice(props.id - 1, 0, {
 			id: boards.length + 1,
@@ -145,12 +141,12 @@ class FavoriteBoards extends Component {
 	}
 
 	deleteEntry({ props }) {
-		ptt.favoriteDeleteEntry(props.id);
-		console.log(props);
-		const { boards } = this.state;
-		boards.splice(props.id - 1, 1);
-		console.log(boards);
-		this.setState({ boards });
+		alertify.confirm("確定要刪除此看板嗎？", () => {
+			ptt.favoriteDeleteEntry(props.id);
+			const { boards } = this.state;
+			boards.splice(props.id - 1, 1);
+			this.setState({ boards });
+		})
 	}
 
 	render() {
@@ -269,6 +265,7 @@ class ActionBar extends Component {
 					{menuItems.map((item, index) =>
 						<a
 							className={`btn${this.state.active === index ? " selected" : ""}`}
+							key={index}
 							onClick={() => {
 								this.setState({ active: index });
 								item.handler();

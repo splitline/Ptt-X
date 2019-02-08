@@ -18,9 +18,10 @@ class PttSocket extends EventEmitter {
     }) => {
       let buffer = [];
       buffer.push(...new Uint8Array(data));
+      this.emit('_message', String.fromCharCode(...buffer).b2u());
       setTimeout(() => {
-        this.emit('message', String.fromCharCode(...buffer).b2u());
-      }, 50);
+        this.emit('data', String.fromCharCode(...buffer).b2u());
+      }, 200);
     });
 
     _socket.addEventListener('open', this.emit.bind(this, 'connect'));
