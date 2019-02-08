@@ -40,7 +40,8 @@ export default class Ptt extends EventEmitter {
 				this.term.write(data);
 				console.log(this.term.toString());
 			})
-			.on("connect", () => this.state.connect = true);
+			.on("connect", () => this.state.connect = true)
+			.on("disconnect", () => this.state.connect = this.state.login = false);
 
 		Ptt.SocketEvents.forEach(e => this.socket.on(e, this.emit.bind(this, e)));
 	}
@@ -54,6 +55,7 @@ export default class Ptt extends EventEmitter {
 	}
 
 	async login(account) {
+		if (this.state.login) return;
 		await this.sendline(account.username + "\r" + account.password);
 		let ret = null,
 			_;
@@ -79,6 +81,8 @@ export default class Ptt extends EventEmitter {
 			return false;
 		} else if (term.includes("抱歉，目前已有太多 guest 在站上")) {
 			return false;
+		} else if (term.includes("登入太頻繁")) {
+			return false;
 		} else if (term.includes("您想刪除其他重複登入的連線嗎")) {
 			await this.sendline(logout_dup ? "Y" : "n");
 		} else if (term.includes("請勿頻繁登入以免造成系統過度負荷")) {
@@ -93,17 +97,17 @@ export default class Ptt extends EventEmitter {
 		return null;
 	}
 
-	async getFavorite() {
-		await this.send(KeyMap.CtrlZ + "f" + KeyMap.Home);
-		const favorites = [];
+	async getBoardList() {
+		const list = [];
 		let firstId = -1,
 			endOfList = false;
+		while (!this.term.toString().includes("看板列表")) await sleep(100);
 		while (true) {
 			await sleep(50);
 			for (let i = 3; i < 23; i++) {
 				let line = this.term.getLine(i);
 				if (line.trim() === '') break;
-				let favorite = {
+				let item = {
 					id: line.substrWidth(3, 4).trim() | 0,
 					read: line.substrWidth(8, 2).trim() === '',
 					boardname: line.substrWidth(10, 12).trim(),
@@ -115,18 +119,30 @@ export default class Ptt extends EventEmitter {
 					admin: line.substrWidth(67).trim(),
 				};
 				if (i === 3) {
-					if (firstId === favorite.id) {
+					if (firstId === item.id) {
 						endOfList = true;
 						break;
 					}
-					firstId = favorite.id;
+					firstId = item.id;
 				}
-				favorites.push(favorite);
+				list.push(item);
 			}
 			if (endOfList) break;
 			await this.send(KeyMap.PageDown);
 		}
-		return favorites;
+		return list;
+	}
+
+	async getFavorite() {
+		await this.send(KeyMap.CtrlZ + "f" + KeyMap.Home);
+		const list = await this.getBoardList();
+		return list;
+	}
+
+	async gettFavoriteFolder(entryId) {
+		await this.send(`${KeyMap.CtrlZ}f${entryId}${KeyMap.Enter}${KeyMap.Home}`);
+		const list = await this.getBoardList();
+		return list;
 	}
 
 	changeFavoriteOrder(originId, newId) {
@@ -136,10 +152,30 @@ export default class Ptt extends EventEmitter {
 		this.sendline(newId);
 	}
 
-	FavoriteAppendDivider(lineId) {
+	favoriteAppendDivider(lineId) {
 		this.send(KeyMap.CtrlZ + "f");
 		this.sendline(lineId);
 		this.send("L");
+	}
+
+	favoriteAppendFolder(lineId) {
+		this.send(KeyMap.CtrlZ + "f");
+		this.sendline(lineId);
+		this.send("g");
+	}
+
+	favoriteDeleteEntry(lineId) {
+		this.send(KeyMap.CtrlZ + "f");
+		this.sendline(lineId);
+		this.send("d");
+		this.sendline("y");
+	}
+
+	async waitForInit() {
+		if (this.state.connect && this.state.login) return new Promise(r => r());
+		else return new Promise(resolve => {
+			this.on("login", resolve);
+		})
 	}
 
 	async send(data) {

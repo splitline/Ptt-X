@@ -2,15 +2,18 @@
   "devDependencies": {
     "@babel/core": "^7.2.2",
     "@babel/plugin-proposal-class-properties": "^7.3.0",
-    "@babel/plugin-syntax-jsx": "^7.2.0",
-    "@babel/plugin-transform-react-jsx": "^7.3.0"
+    "@babel/preset-env": "^7.3.1",
+    "@babel/preset-react": "^7.0.0"
   },
   "dependencies": {
     "alertifyjs": "^1.11.2",
     "babel-polyfill": "^6.26.0",
     "jsx-render": "^1.1.1",
+    "react": "^16.8.1",
+    "react-beautiful-dnd": "^10.0.4",
+    "react-contexify": "^4.0.1",
+    "react-dom": "^16.8.1",
     "sleep-promise": "^8.0.1",
-    "terminal.js": "github:Gottox/terminal.js",
-    "toastr": "^2.1.4"
+    "terminal.js": "github:Gottox/terminal.js"
   }
 }

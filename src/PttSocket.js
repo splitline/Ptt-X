@@ -5,10 +5,15 @@ import {
 class PttSocket extends EventEmitter {
   constructor(url) {
     super();
-    this.socket = new WebSocket(url);
+    this.url = url;
+    this.socket = this.buildSocket();
+  }
 
-    this.socket.binaryType = "arraybuffer";
-    this.socket.addEventListener('message', ({
+  buildSocket() {
+    let _socket = new WebSocket(this.url);
+
+    _socket.binaryType = "arraybuffer";
+    _socket.addEventListener('message', ({
       data
     }) => {
       let buffer = [];
@@ -18,13 +23,19 @@ class PttSocket extends EventEmitter {
       }, 50);
     });
 
-    this.socket.addEventListener('open', this.emit.bind(this, 'connect'));
-    this.socket.addEventListener('close', this.emit.bind(this, 'disconnect'));
-    this.socket.addEventListener('error', this.emit.bind(this, 'error'));
+    _socket.addEventListener('open', this.emit.bind(this, 'connect'));
+    _socket.addEventListener('close', this.emit.bind(this, 'disconnect'));
+    _socket.addEventListener('error', this.emit.bind(this, 'error'));
+
+    return _socket;
   }
 
   async send(data) {
     this.socket.send(new TextEncoder().encode(data));
+  }
+
+  reconnect() {
+    this.socket = this.buildSocket();
   }
 }
 
