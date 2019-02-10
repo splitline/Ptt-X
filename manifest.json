@@ -13,10 +13,9 @@
       "dist/index.js"
     ],
     "css": [
-      "node_modules/toastr/build/toastr.min.css",
-      "node_modules/alertifyjs/build/css/alertify.min.css",
-      "node_modules/alertifyjs/build/css/themes/default.min.css",
-      "node_modules/react-contexify/dist/ReactContexify.min.css",
+      "dist/lib/alertify.min.css",
+      "dist/lib/default.min.css",
+      "dist/lib/ReactContexify.min.css",
       "dist/custom.css"
     ],
     "all_frames": true,
