@@ -12,7 +12,7 @@ export default class Ptt extends EventEmitter {
 	static SocketEvents = [
 		'connect',
 		'disconnect',
-		'data',
+		'message',
 		'error',
 	];
 
@@ -45,11 +45,11 @@ export default class Ptt extends EventEmitter {
 		});
 		this.term.state.setMode('stringWidth', 'dbcs');
 		this.term.getLine = i => this.term.state.getLine(i).str;
-		this.socket.on("_message", (data) => {
-			this.term.write(data);
-			console.log(this.term.toString());
-		});
-		this.on("connect", () => this.state.connect = true)
+		this.on("message", (data) => {
+				this.term.write(data);
+				console.log(this.term.toString());
+			})
+			.on("connect", () => this.state.connect = true)
 			.on("disconnect", () => this.state.connect = this.state.login = false);
 
 		Ptt.SocketEvents.forEach(e => this.socket.on(e, this.emit.bind(this, e)));
@@ -69,13 +69,13 @@ export default class Ptt extends EventEmitter {
 		let ret = null,
 			_;
 		return new Promise(resolve => {
-			this.on("data", (_ = async (data) => {
+			this.on("message", (_ = async (data) => {
 				console.warn(data);
 				ret = await this.isLogin(data, account);
 				if (typeof ret === "boolean") {
 					this.state.login = ret;
 					this.emit("login", ret);
-					this.removeListener("data", _);
+					this.removeListener("message", _);
 					resolve(ret);
 				}
 			}));
@@ -112,7 +112,6 @@ export default class Ptt extends EventEmitter {
 			endOfList = false;
 		while (!this.term.toString().includes("看板列表")) await sleep(100);
 		while (true) {
-			// await sleep(50);
 			for (let i = 3; i < 23; i++) {
 				let line = this.term.getLine(i);
 				if (line.trim() === '') break;
@@ -139,28 +138,23 @@ export default class Ptt extends EventEmitter {
 			if (endOfList) break;
 			await this.send(KeyMap.PageDown);
 		}
-		return list;
-	}
 
-	async quickSwitch(key) {
-		return this.send(KeyMap.CtrlZ + key + (
-			key in [Ptt.switchTo.mailbox] ?
-			KeyMap.End :
-			KeyMap.Home));
+		this.send(KeyMap.Home);
+		return list;
 	}
 
 	async addFavorite(searchStr, queryOnly = true) {
 		searchStr = searchStr.trim();
 		if (!this.term.toString().includes("看板列表"))
-			this.quickSwitch(Ptt.switchTo.favorites);
+			await this.send(KeyMap.CtrlZ + "f");
 		await this.send("a");
 		while (!this.term.toString().includes("我的最愛")) await sleep(100);
 		await this.send(searchStr + (queryOnly ? " " : KeyMap.Enter));
 		if (!queryOnly) return true;
-		
+
 		let queryResult = [];
 		const matchedResult = this.term.getLine(1).substrWidth(42, 12).trim();
-		if(matchedResult !== searchStr){
+		if (matchedResult !== searchStr) {
 			console.log("matched")
 			queryResult.push(matchedResult);
 			this.sendline(KeyMap.Backspace.repeat(matchedResult.length));
@@ -173,9 +167,9 @@ export default class Ptt extends EventEmitter {
 		this.sendline(KeyMap.Backspace.repeat(searchStr.length));
 		return queryResult;
 	}
-
 	async getFavorite() {
-		this.quickSwitch(Ptt.switchTo.favorites);
+		if (!this.term.toString().includes("看板列表"))
+			await this.send(KeyMap.CtrlZ + "f");
 		const list = await this.getBoardList();
 		return list;
 	}
@@ -187,33 +181,37 @@ export default class Ptt extends EventEmitter {
 	}
 
 	changeFavoriteOrder(originId, newId) {
-		this.quickSwitch(Ptt.switchTo.favorites);
+		this.send(KeyMap.CtrlZ + "f");
 		this.sendline(originId);
 		this.send("M");
 		this.sendline(newId);
+		this.send(KeyMap.Home);
 	}
 
 	favoriteAppendDivider(lineId) {
-		this.quickSwitch(Ptt.switchTo.favorites);
+		this.send(KeyMap.CtrlZ + "f");
 		this.sendline(lineId);
 		this.send("L");
+		this.send(KeyMap.Home);
 	}
 
 	favoriteAppendFolder(lineId) {
-		this.quickSwitch(Ptt.switchTo.favorites);
+		this.send(KeyMap.CtrlZ + "f");
 		this.sendline(lineId);
 		this.send("g");
+		this.send(KeyMap.Home);
 	}
 
 	favoriteDeleteEntry(lineId) {
-		this.quickSwitch(Ptt.switchTo.favorites);
+		this.send(KeyMap.CtrlZ + "f");
 		this.sendline(lineId);
 		this.send("d");
 		this.sendline("y");
+		this.send(KeyMap.Home);
 	}
 
 	async waitForInit() {
-		if (this.state.connect && this.state.login) return new Promise(r => r());
+		if (this.state.connect && this.state.login) return;
 		else return new Promise(resolve => {
 			this.on("login", resolve);
 		})
@@ -223,7 +221,7 @@ export default class Ptt extends EventEmitter {
 		!data.endsWith("\r") && console.log("SEND:", data);
 		return new Promise(resolve => {
 			this.socket.send(data);
-			this.once('data', resolve);
+			this.once('message', () => setTimeout(resolve, 100));
 		});
 	}
 

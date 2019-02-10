@@ -61,7 +61,7 @@ class TopBar extends Component {
 class FavoriteBoards extends Component {
 	constructor(props) {
 		super(props);
-		this.state = { boards: [], loading: true, dragging: false };
+		this.state = { boards: [], loading: true, queryResult: [], queryStr: "", lock: false };
 		this.onDragEnd = this.onDragEnd.bind(this);
 		this.onContextMenu = this.onContextMenu.bind(this);
 
@@ -73,11 +73,15 @@ class FavoriteBoards extends Component {
 	}
 
 	componentDidMount() {
+		this.init();
+	}
+
+	init() {
 		ptt.waitForInit()
 			.then(() => ptt.getFavorite())
 			.then(list => {
 				this.setState({ boards: list, loading: false });
-			})
+			});
 	}
 
 	onContextMenu(event) {
@@ -149,14 +153,53 @@ class FavoriteBoards extends Component {
 		})
 	}
 
+	addFavorite(value = "", queryOnly = true) {
+		this.setState({ lock: true });
+		if (!queryOnly)
+			this.setState({ queryStr: "", queryResult: [] })
+		if (value.trim() !== "")
+			ptt.addFavorite(value, queryOnly)
+				.then((result) => {
+					this.setState({ lock: false });
+					if (queryOnly)
+						this.setState({ queryResult: result });
+					else
+						this.init();
+				})
+	}
+
 	render() {
 		return (
 			this.state.loading ?
 				<div style={{ margin: 'auto', width: 'fit-content' }}><div className="lds-ellipsis"><div></div><div></div><div></div><div></div></div></div>
 				:
 				<Fragment>
-					<div className="search-bar">
-						<input className="query" type="text" name="q" placeholder="新增看板..." autoComplete="off" />
+					<div className="search-bar" style={{ position: 'relative' }}>
+						<input className="query" type="text" placeholder="新增看板..." onChange={e => this.setState({ queryStr: e.target.value })} autoComplete="off" value={this.state.queryStr} style={{ width: "90%" }} />
+						<button className="btn"
+							disabled={this.state.lock}
+							onClick={e => this.addFavorite(this.state.queryStr, true)}
+							style={{
+								width: "10%",
+								padding: "0.8ex",
+								fontSize: 'inherit'
+							}}>搜尋</button>
+						<div style={{
+							position: "absolute",
+							backgroundColor: "#222",
+							width: "100%",
+							zIndex: 1,
+							maxHeight: "12em",
+							overflow: 'scroll'
+						}}>
+							{this.state.queryResult.map(board =>
+								<div className="b-ent" onClick={e => this.addFavorite(board, false)}>
+									<a className="board" href="#!">
+										<div className="board-name">{board}</div>
+									</a>
+								</div>
+							)}
+						</div>
 					</div>
 					<DragDropContext onDragEnd={this.onDragEnd}>
 						<Droppable droppableId="boards">
@@ -188,7 +231,7 @@ class FavoriteBoards extends Component {
 						<Item onClick={this.appendFolder}>在上方插入目錄</Item>
 						<Item onClick={this.deleteEntry}>刪除</Item>
 					</Menu>
-				</Fragment>
+				</Fragment >
 		);
 	}
 }
@@ -300,15 +343,15 @@ chrome.storage.sync.get({ account: null }, async (data) => {
 	if (!data.account)
 		alertify.confirm("設定 Ptt 帳號",
 			`<div>
-				<label htmlFor="ptt-id"> ID </label>
-				<input class="ajs-input" type="text" id="ptt-username" />
-				<label htmlFor="ptt-password"> 密碼 </label>
-				<input class="ajs-input" type="password" id="ptt-password" />
-				<input type="checkbox" id="ptt-logout-dup" checked />
-				<label for="ptt-logout-dup">刪除其他重複登入的連線</label>
-				<input type="checkbox" id="ptt-delete-try-log" checked />
-				<label for="ptt-delete-try-log">刪除登入錯誤嘗試的記錄</label>
-			</div>`
+							<label htmlFor="ptt-id"> ID </label>
+							<input class="ajs-input" type="text" id="ptt-username" />
+							<label htmlFor="ptt-password"> 密碼 </label>
+							<input class="ajs-input" type="password" id="ptt-password" />
+							<input type="checkbox" id="ptt-logout-dup" checked />
+							<label for="ptt-logout-dup">刪除其他重複登入的連線</label>
+							<input type="checkbox" id="ptt-delete-try-log" checked />
+							<label for="ptt-delete-try-log">刪除登入錯誤嘗試的記錄</label>
+						</div>`
 			, () => {
 				account = {
 					username: document.getElementById("ptt-username").value,
@@ -322,7 +365,6 @@ chrome.storage.sync.get({ account: null }, async (data) => {
 			.setting({
 				closable: false,
 				labels: { ok: '設定並登入', cancel: '下次再說' },
-				defaultFocus: undefined
 			});
 	else
 		initPtt(data.account);
