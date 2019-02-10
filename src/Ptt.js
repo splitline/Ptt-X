@@ -65,12 +65,11 @@ export default class Ptt extends EventEmitter {
 
 	async login(account) {
 		if (this.state.login) return;
-		await this.sendline(account.username + "\r" + account.password);
+		this.sendline(account.username + "\r" + account.password);
 		let ret = null,
 			_;
 		return new Promise(resolve => {
 			this.on("message", (_ = async (data) => {
-				console.warn(data);
 				ret = await this.isLogin(data, account);
 				if (typeof ret === "boolean") {
 					this.state.login = ret;
@@ -86,7 +85,7 @@ export default class Ptt extends EventEmitter {
 		logout_dup = true,
 		delete_try_log = true
 	}) {
-		if (term.includes("密碼不對或無此帳號")) {
+		if (term.includes("密碼不對")) {
 			return false;
 		} else if (term.includes("抱歉，目前已有太多 guest 在站上")) {
 			return false;

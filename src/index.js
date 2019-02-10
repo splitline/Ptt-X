@@ -336,7 +336,8 @@ const initPtt = async (account) => {
 	console.log("initPtt");
 	await ptt.connect();
 	console.log("login");
-	await ptt.login(account);
+	const result = await ptt.login(account);
+	if(result) chrome.storage.sync.set({ account: account });
 }
 
 chrome.storage.sync.get({ account: null }, async (data) => {
@@ -359,7 +360,6 @@ chrome.storage.sync.get({ account: null }, async (data) => {
 					logout_dup: document.getElementById('ptt-logout-dup').checked,
 					delete_try_log: document.getElementById('ptt-delete-try-log').checked
 				};
-				chrome.storage.sync.set({ account: account });
 				initPtt(account);
 			}, () => undefined)
 			.setting({
