@@ -192,8 +192,8 @@ class FavoriteBoards extends Component {
 							maxHeight: "12em",
 							overflow: 'scroll'
 						}}>
-							{this.state.queryResult.map(board =>
-								<div className="b-ent" onClick={e => this.addFavorite(board, false)}>
+							{this.state.queryResult.map((board, i) =>
+								<div className="b-ent" key={i} onClick={e => this.addFavorite(board, false)}>
 									<a className="board" href="#!">
 										<div className="board-name">{board}</div>
 									</a>

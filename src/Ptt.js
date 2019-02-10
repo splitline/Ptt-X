@@ -161,8 +161,9 @@ export default class Ptt extends EventEmitter {
 			return queryResult;
 		}
 		for (let i = 3; i < 23; i++) {
-			let line = this.term.getLine(i);
-			queryResult = queryResult.concat(line.split(/\s+/));
+			const line = this.term.getLine(i);
+			let boards = line.split(/\s+/).filter(i => i.trim() !== "");
+			queryResult = queryResult.concat(boards);
 		}
 		this.sendline(KeyMap.Backspace.repeat(searchStr.length));
 		return queryResult;
